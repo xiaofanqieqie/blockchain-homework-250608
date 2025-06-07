@@ -1,0 +1,18 @@
+services:
+  miner:
+    image: ethereum/client-go:v1.8.12
+    container_name: miner
+    hostname: node
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["/workspace/dapp/init.sh /workspace/dapp/mine.sh"]
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./opt/docker-project/eth/workspace:/workspace
+    networks:
+      ethnet:
+        ipv4_address: 172.26.0.50
+
+networks:
+  ethnet:
+    external: true 

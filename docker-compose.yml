@@ -1,0 +1,17 @@
+services:
+  eth-client:
+    image: ethereum/client-go:v1.8.12
+    container_name: eth-client
+    entrypoint: /bin/sh
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./opt/docker-project/eth/workspace:/workspace
+    networks:
+      ethnet:
+        ipv4_address: 172.26.0.50
+    restart: "no"
+
+networks:
+  ethnet:
+    external: true 
