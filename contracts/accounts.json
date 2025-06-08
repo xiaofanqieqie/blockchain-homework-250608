@@ -1,0 +1,66 @@
+{
+  "accounts": [
+    {
+      "index": 0,
+      "name": "主账户",
+      "address": "0x1184a8E4007f05c34e8610fdE3d741F1BEDeBace",
+      "privateKey": "0xf78731a1259d779ee98fdd253907c459bf26f750e54056368587882c2b222cf1",
+      "balance": "3000+",
+      "purpose": "主要测试账户，合约部署者"
+    },
+    {
+      "index": 1,
+      "name": "测试账户1",
+      "address": "0x8F8E841417362b9CC1b3B517ADFfe26d25e809F7",
+      "privateKey": "0x1527ce39fd1379fcdfe57a4c1b3da54c325bfc2681818c171154dbb288c7464d",
+      "mnemonic": "urge leave bomb track forward this submit treat unknown flight plastic nurse",
+      "balance": "100",
+      "purpose": "投资者测试"
+    },
+    {
+      "index": 2,
+      "name": "测试账户2",
+      "address": "0xF372aE700B0dEF9aa416f109436D22575ad1e92d",
+      "privateKey": "0xb8f98b8858efab330aae8cadf59a4eb3864e5b125f190271d08ed909e8e1ec95",
+      "mnemonic": "tobacco arm layer need clutch tooth debris fog toe tiger alert direct",
+      "balance": "100",
+      "purpose": "投资者测试"
+    },
+    {
+      "index": 3,
+      "name": "测试账户3",
+      "address": "0x390c7888692A3ABf7e0ff648CAf016370635b53A",
+      "privateKey": "0x859388e2ab9425e325366195665f4f010eb39890db9162e9f1114212e460b35d",
+      "mnemonic": "cinnamon ridge gauge fee real mosquito federal hobby various devote shoe dolphin",
+      "balance": "100",
+      "purpose": "投资者测试"
+    },
+    {
+      "index": 4,
+      "name": "测试账户4",
+      "address": "0x2adb7caAA226d7d2a48870CdfdBAcDf4d0338c87",
+      "privateKey": "0xbf7911c6756af5b8f99e80c06726f3f2a3070a7e4b14c37d3eae7e187413013f",
+      "mnemonic": "mercy success dizzy rigid close moral result guard clever okay wall mention",
+      "balance": "100",
+      "purpose": "投资者测试"
+    },
+    {
+      "index": 5,
+      "name": "测试账户5",
+      "address": "0x978D91FAaee8eE579Cd13452d52db86298105DF1",
+      "privateKey": "0xbe13b809e0f252f36f8ca7c12702317d9374804e79d902a6cb43a4dc84963b0f",
+      "mnemonic": "blast flip immense invite second expose emerge oppose escape add nothing run",
+      "balance": "100",
+      "purpose": "投资者测试"
+    }
+  ],
+  "network": {
+    "name": "私有以太坊网络",
+    "chainId": 88,
+    "rpc": "http://152.53.165.85:8545"
+  },
+  "contract": {
+    "name": "Crowdfunding",
+    "address": "0xF4A3F39CeB34aac8b8De63E663747b620A1b26b4"
+  }
+} 

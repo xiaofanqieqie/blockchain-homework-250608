@@ -11,6 +11,8 @@ const rl = readline.createInterface({
 // 合约相关变量
 let crowdfunding;
 let deployer;
+let allAccounts = [];
+let currentAccountIndex = 0;
 let contractAddress;
 
 // 项目状态枚举
@@ -59,9 +61,11 @@ async function initContract() {
       throw new Error("未找到部署信息文件 deployment-info.json");
     }
 
-    // 获取签名者 - 确保使用私有网络账户
-    [deployer] = await ethers.getSigners();
+    // 获取所有签名者账户
+    allAccounts = await ethers.getSigners();
+    deployer = allAccounts[currentAccountIndex];
     console.log("👤 当前账户:", deployer.address);
+    console.log("🔢 可用账户总数:", allAccounts.length);
     
     // 验证账户地址
     const expectedAddress = "0x1184a8E4007f05c34e8610fdE3d741F1BEDeBace";
@@ -160,12 +164,62 @@ function showMainMenu() {
   console.log("11. 📉 查看平台统计信息");
   console.log("12. ⚙️  管理员功能");
   console.log("13. 💳 查看账户信息");
-  console.log("14. 🔧 网络诊断");
+  console.log("14. 🔄 切换账户");
+  console.log("15. 🔧 网络诊断");
   console.log("0.  🚪 退出程序");
   console.log("=".repeat(50));
 }
 
-// 14. 网络诊断功能
+// 14. 切换账户功能
+async function switchAccount() {
+  console.log("\n🔄 切换账户");
+  console.log("-".repeat(30));
+  
+  try {
+    console.log("📋 可用账户列表:");
+    console.log("-".repeat(20));
+    
+    for (let i = 0; i < allAccounts.length; i++) {
+      const account = allAccounts[i];
+      const balance = await ethers.provider.getBalance(account.address);
+      const marker = i === currentAccountIndex ? " 👈 当前" : "";
+      console.log(`${i}. ${account.address} (${formatEther(balance)} ETH)${marker}`);
+    }
+    
+    console.log("-".repeat(20));
+    const choice = await askQuestion(`请选择账户 (0-${allAccounts.length - 1}): `);
+    const accountIndex = parseInt(choice);
+    
+    if (isNaN(accountIndex) || accountIndex < 0 || accountIndex >= allAccounts.length) {
+      console.log("❌ 无效的账户索引");
+      return;
+    }
+    
+    if (accountIndex === currentAccountIndex) {
+      console.log("ℹ️  已经是当前账户");
+      return;
+    }
+    
+    // 切换账户
+    currentAccountIndex = accountIndex;
+    deployer = allAccounts[currentAccountIndex];
+    
+    // 重新连接合约
+    const Crowdfunding = await ethers.getContractFactory("Crowdfunding");
+    crowdfunding = Crowdfunding.attach(contractAddress).connect(deployer);
+    
+    console.log("✅ 账户切换成功!");
+    console.log("👤 当前账户:", deployer.address);
+    
+    const balance = await ethers.provider.getBalance(deployer.address);
+    console.log("💰 账户余额:", formatEther(balance), "ETH");
+    
+  } catch (error) {
+    console.error("❌ 切换账户失败:", error.message);
+  }
+}
+
+// 15. 网络诊断功能
 async function networkDiagnostics() {
   console.log("\n🔧 网络诊断");
   console.log("-".repeat(30));
@@ -1017,6 +1071,9 @@ async function mainLoop() {
         await viewAccountInfo();
         break;
       case '14':
+        await switchAccount();
+        break;
+      case '15':
         await networkDiagnostics();
         break;
       case '0':
