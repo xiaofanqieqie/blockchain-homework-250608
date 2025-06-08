@@ -16,16 +16,21 @@ module.exports = {
     localhost: {
       url: "http://152.53.165.85:8545",
       chainId: 88,
-      accounts: "remote" // 使用私有网络账户
+              accounts: [
+          // 私有网络主账户私钥 (从keystore解密获得)
+          "0xf78731a1259d779ee98fdd253907c459bf26f750e54056368587882c2b222cf1"
+        ],
+      gas: 2100000,
+      gasPrice: 8000000000
     },
     // 你的私有网络
     private: {
       url: "http://152.53.165.85:8545",
       chainId: 88,
-      accounts: [
-        // 在这里添加私钥（请不要在生产环境中硬编码私钥）
-        // "0x你的私钥"
-      ],
+              accounts: [
+          // 私有网络主账户私钥 (从keystore解密获得)
+          "0xf78731a1259d779ee98fdd253907c459bf26f750e54056368587882c2b222cf1"
+        ],
       gas: 2100000,
       gasPrice: 8000000000
     },
