@@ -1,11 +1,11 @@
 {
   "contractName": "Crowdfunding",
-  "contractAddress": "0xF4A3F39CeB34aac8b8De63E663747b620A1b26b4",
+  "contractAddress": "0x74785B0A9EE496968d01F5B924BA3B9AF9C99b42",
   "deployer": "0x1184a8E4007f05c34e8610fdE3d741F1BEDeBace",
   "platformWallet": "0x1184a8E4007f05c34e8610fdE3d741F1BEDeBace",
-  "transactionHash": "0x56305669ff8bcbf0cb6faaed4b5ed158bee5ccb32ef1d2a36853efbdd29e56bb",
+  "transactionHash": "0x9749d067e6e97bdb9b5e6411d38b1af11d4e6db11041c62784119cbea31ad703",
   "blockNumber": null,
-  "gasUsed": "2100000",
-  "timestamp": "2025-06-08T09:22:24.088Z",
-  "network": "localhost"
+  "gasUsed": "1980324",
+  "timestamp": "2025-06-08T09:48:32.395Z",
+  "network": "private"
 }

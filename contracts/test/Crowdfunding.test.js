@@ -48,8 +48,8 @@ describe("Crowdfunding Contract", function () {
     it("应该成功创建项目", async function () {
       const title = "测试项目";
       const description = "这是一个测试项目";
-      const goalAmount = ethers.parseEther("1");
-      const duration = 30; // 30天
+      const goalAmount = ethers.parseEther("0.01"); // 降低目标金额以适应新的最小值
+      const duration = 30 * 24 * 3600; // 30天转换为秒
 
       await expect(
         crowdfunding.connect(creator).createProject(title, description, goalAmount, duration)
@@ -68,31 +68,31 @@ describe("Crowdfunding Contract", function () {
 
     it("不应该允许空标题", async function () {
       await expect(
-        crowdfunding.connect(creator).createProject("", "描述", ethers.parseEther("1"), 30)
+        crowdfunding.connect(creator).createProject("", "描述", ethers.parseEther("0.01"), 30 * 24 * 3600)
       ).to.be.revertedWith("Title cannot be empty");
     });
 
     it("不应该允许空描述", async function () {
       await expect(
-        crowdfunding.connect(creator).createProject("标题", "", ethers.parseEther("1"), 30)
+        crowdfunding.connect(creator).createProject("标题", "", ethers.parseEther("0.01"), 30 * 24 * 3600)
       ).to.be.revertedWith("Description cannot be empty");
     });
 
     it("不应该允许过低的目标金额", async function () {
       await expect(
-        crowdfunding.connect(creator).createProject("标题", "描述", ethers.parseEther("0.05"), 30)
+        crowdfunding.connect(creator).createProject("标题", "描述", ethers.parseEther("0.0005"), 30 * 24 * 3600)
       ).to.be.revertedWith("Goal amount too low");
     });
 
     it("不应该允许过短的持续时间", async function () {
       await expect(
-        crowdfunding.connect(creator).createProject("标题", "描述", ethers.parseEther("1"), 0)
+        crowdfunding.connect(creator).createProject("标题", "描述", ethers.parseEther("0.01"), 1800) // 30分钟，小于1小时
       ).to.be.revertedWith("Duration too short");
     });
 
     it("不应该允许过长的持续时间", async function () {
       await expect(
-        crowdfunding.connect(creator).createProject("标题", "描述", ethers.parseEther("1"), 100)
+        crowdfunding.connect(creator).createProject("标题", "描述", ethers.parseEther("0.01"), 100 * 24 * 3600) // 100天，超过90天
       ).to.be.revertedWith("Duration too long");
     });
   });
@@ -103,16 +103,16 @@ describe("Crowdfunding Contract", function () {
     beforeEach(async function () {
       await crowdfunding.connect(creator).createProject(
         "测试项目",
-        "测试描述", 
-        ethers.parseEther("1"),
-        30
+        "测试描述",
+        ethers.parseEther("0.01"), // 降低目标金额
+        30 * 24 * 3600 // 30天转换为秒
       );
       projectId = 1;
     });
 
     it("应该允许用户投资", async function () {
-      const contributionAmount = ethers.parseEther("0.5");
-      
+      const contributionAmount = ethers.parseEther("0.005"); // 调整投资金额
+
       await expect(
         crowdfunding.connect(contributor1).contribute(projectId, {value: contributionAmount})
       ).to.emit(crowdfunding, "ContributionMade")
@@ -127,8 +127,8 @@ describe("Crowdfunding Contract", function () {
     });
 
     it("应该在达到目标时标记项目为成功", async function () {
-      const contributionAmount = ethers.parseEther("1");
-      
+      const contributionAmount = ethers.parseEther("0.01"); // 调整为目标金额
+
       await expect(
         crowdfunding.connect(contributor1).contribute(projectId, {value: contributionAmount})
       ).to.emit(crowdfunding, "ProjectSuccessful")
@@ -138,30 +138,37 @@ describe("Crowdfunding Contract", function () {
       expect(project.status).to.equal(ProjectStatus.Successful);
     });
 
-    it("不应该允许创建者投资自己的项目", async function () {
+    it("应该允许创建者投资自己的项目", async function () {
+      // 现在允许创建者投资自己的项目
+      const contributionAmount = ethers.parseEther("0.001");
+
       await expect(
-        crowdfunding.connect(creator).contribute(projectId, {value: ethers.parseEther("0.1")})
-      ).to.be.revertedWith("Creator cannot contribute to own project");
+        crowdfunding.connect(creator).contribute(projectId, {value: contributionAmount})
+      ).to.emit(crowdfunding, "ContributionMade")
+       .withArgs(projectId, creator.address, contributionAmount, contributionAmount);
+
+      const project = await crowdfunding.getProject(projectId);
+      expect(project.currentAmount).to.equal(contributionAmount);
     });
 
     it("不应该允许低于最小金额的投资", async function () {
       await expect(
-        crowdfunding.connect(contributor1).contribute(projectId, {value: ethers.parseEther("0.005")})
+        crowdfunding.connect(contributor1).contribute(projectId, {value: ethers.parseEther("0.00005")}) // 小于0.0001 ETH
       ).to.be.revertedWith("Contribution amount too low");
     });
 
     it("不应该允许向不存在的项目投资", async function () {
       await expect(
-        crowdfunding.connect(contributor1).contribute(999, {value: ethers.parseEther("0.1")})
+        crowdfunding.connect(contributor1).contribute(999, {value: ethers.parseEther("0.001")})
       ).to.be.revertedWith("Project does not exist");
     });
 
     it("应该正确追踪多个投资者", async function () {
-      await crowdfunding.connect(contributor1).contribute(projectId, {value: ethers.parseEther("0.3")});
-      await crowdfunding.connect(contributor2).contribute(projectId, {value: ethers.parseEther("0.4")});
+      await crowdfunding.connect(contributor1).contribute(projectId, {value: ethers.parseEther("0.003")});
+      await crowdfunding.connect(contributor2).contribute(projectId, {value: ethers.parseEther("0.004")});
 
       const project = await crowdfunding.getProject(projectId);
-      expect(project.currentAmount).to.equal(ethers.parseEther("0.7"));
+      expect(project.currentAmount).to.equal(ethers.parseEther("0.007"));
       expect(project.contributorsCount).to.equal(2);
 
       const contributors = await crowdfunding.getProjectContributors(projectId);
@@ -176,14 +183,14 @@ describe("Crowdfunding Contract", function () {
     beforeEach(async function () {
       await crowdfunding.connect(creator).createProject(
         "测试项目",
-        "测试描述", 
-        ethers.parseEther("1"),
-        30
+        "测试描述",
+        ethers.parseEther("0.01"), // 降低目标金额
+        30 * 24 * 3600 // 30天转换为秒
       );
       projectId = 1;
-      
+
       // 达到目标
-      await crowdfunding.connect(contributor1).contribute(projectId, {value: ethers.parseEther("1")});
+      await crowdfunding.connect(contributor1).contribute(projectId, {value: ethers.parseEther("0.01")});
     });
 
     it("应该允许创建者提取成功项目的资金", async function () {
@@ -198,9 +205,8 @@ describe("Crowdfunding Contract", function () {
       const platformBalanceAfter = await ethers.provider.getBalance(platformWallet.address);
 
       // 计算期望的金额（扣除2.5%手续费）
-      const totalAmount = ethers.parseEther("1");
+      const totalAmount = ethers.parseEther("0.01");
       const platformFee = totalAmount * 250n / 10000n; // 2.5%
-      const creatorAmount = totalAmount - platformFee;
 
       expect(creatorBalanceAfter).to.be.greaterThan(creatorBalanceBefore);
       expect(platformBalanceAfter).to.equal(platformBalanceBefore + platformFee);
@@ -231,14 +237,14 @@ describe("Crowdfunding Contract", function () {
     beforeEach(async function () {
       await crowdfunding.connect(creator).createProject(
         "测试项目",
-        "测试描述", 
-        ethers.parseEther("1"),
-        1 // 1天
+        "测试描述",
+        ethers.parseEther("0.01"), // 降低目标金额
+        1 * 24 * 3600 // 1天转换为秒
       );
       projectId = 1;
-      
+
       // 贡献但未达到目标
-      await crowdfunding.connect(contributor1).contribute(projectId, {value: ethers.parseEther("0.5")});
+      await crowdfunding.connect(contributor1).contribute(projectId, {value: ethers.parseEther("0.005")});
     });
 
     it("应该允许在项目失败后退款", async function () {
@@ -246,7 +252,7 @@ describe("Crowdfunding Contract", function () {
       await time.increase(2 * 24 * 60 * 60); // 2天
 
       const contributorBalanceBefore = await ethers.provider.getBalance(contributor1.address);
-      const contributionAmount = ethers.parseEther("0.5");
+      const contributionAmount = ethers.parseEther("0.005");
 
       await expect(
         crowdfunding.connect(contributor1).requestRefund(projectId)
@@ -275,8 +281,8 @@ describe("Crowdfunding Contract", function () {
 
     it("不应该允许在项目成功后申请退款", async function () {
       // 再投资使项目成功
-      await crowdfunding.connect(contributor2).contribute(projectId, {value: ethers.parseEther("0.5")});
-      
+      await crowdfunding.connect(contributor2).contribute(projectId, {value: ethers.parseEther("0.005")});
+
       await expect(
         crowdfunding.connect(contributor1).requestRefund(projectId)
       ).to.be.revertedWith("Refund not available");
@@ -289,9 +295,9 @@ describe("Crowdfunding Contract", function () {
     beforeEach(async function () {
       await crowdfunding.connect(creator).createProject(
         "测试项目",
-        "测试描述", 
-        ethers.parseEther("1"),
-        30
+        "测试描述",
+        ethers.parseEther("0.01"), // 降低目标金额
+        30 * 24 * 3600 // 30天转换为秒
       );
       projectId = 1;
     });
@@ -315,13 +321,13 @@ describe("Crowdfunding Contract", function () {
   describe("查询功能", function () {
     it("应该正确计算项目成功率", async function () {
       // 创建3个项目
-      await crowdfunding.connect(creator).createProject("项目1", "描述1", ethers.parseEther("1"), 30);
-      await crowdfunding.connect(creator).createProject("项目2", "描述2", ethers.parseEther("1"), 30);
-      await crowdfunding.connect(creator).createProject("项目3", "描述3", ethers.parseEther("1"), 30);
+      await crowdfunding.connect(creator).createProject("项目1", "描述1", ethers.parseEther("0.01"), 30 * 24 * 3600);
+      await crowdfunding.connect(creator).createProject("项目2", "描述2", ethers.parseEther("0.01"), 30 * 24 * 3600);
+      await crowdfunding.connect(creator).createProject("项目3", "描述3", ethers.parseEther("0.01"), 30 * 24 * 3600);
 
       // 让第一个项目成功
-      await crowdfunding.connect(contributor1).contribute(1, {value: ethers.parseEther("1")});
-      
+      await crowdfunding.connect(contributor1).contribute(1, {value: ethers.parseEther("0.01")});
+
       // 让第二个项目失败
       await crowdfunding.connect(creator).cancelProject(2);
 
@@ -332,8 +338,8 @@ describe("Crowdfunding Contract", function () {
     });
 
     it("应该返回用户创建的项目列表", async function () {
-      await crowdfunding.connect(creator).createProject("项目1", "描述1", ethers.parseEther("1"), 30);
-      await crowdfunding.connect(creator).createProject("项目2", "描述2", ethers.parseEther("1"), 30);
+      await crowdfunding.connect(creator).createProject("项目1", "描述1", ethers.parseEther("0.01"), 30 * 24 * 3600);
+      await crowdfunding.connect(creator).createProject("项目2", "描述2", ethers.parseEther("0.01"), 30 * 24 * 3600);
 
       const userProjects = await crowdfunding.getUserCreatedProjects(creator.address);
       expect(userProjects.length).to.equal(2);
@@ -342,11 +348,11 @@ describe("Crowdfunding Contract", function () {
     });
 
     it("应该返回用户参与的项目列表", async function () {
-      await crowdfunding.connect(creator).createProject("项目1", "描述1", ethers.parseEther("1"), 30);
-      await crowdfunding.connect(creator).createProject("项目2", "描述2", ethers.parseEther("1"), 30);
+      await crowdfunding.connect(creator).createProject("项目1", "描述1", ethers.parseEther("0.01"), 30 * 24 * 3600);
+      await crowdfunding.connect(creator).createProject("项目2", "描述2", ethers.parseEther("0.01"), 30 * 24 * 3600);
 
-      await crowdfunding.connect(contributor1).contribute(1, {value: ethers.parseEther("0.1")});
-      await crowdfunding.connect(contributor1).contribute(2, {value: ethers.parseEther("0.1")});
+      await crowdfunding.connect(contributor1).contribute(1, {value: ethers.parseEther("0.001")});
+      await crowdfunding.connect(contributor1).contribute(2, {value: ethers.parseEther("0.001")});
 
       const userContributions = await crowdfunding.getUserParticipatedProjects(contributor1.address);
       expect(userContributions.length).to.equal(2);
@@ -380,8 +386,8 @@ describe("Crowdfunding Contract", function () {
     });
 
     it("应该允许所有者紧急标记项目为失败", async function () {
-      await crowdfunding.connect(creator).createProject("项目1", "描述1", ethers.parseEther("1"), 30);
-      
+      await crowdfunding.connect(creator).createProject("项目1", "描述1", ethers.parseEther("0.01"), 30 * 24 * 3600);
+
       await expect(
         crowdfunding.connect(owner).emergencyFailProject(1)
       ).to.emit(crowdfunding, "ProjectFailed");

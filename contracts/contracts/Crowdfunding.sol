@@ -54,11 +54,11 @@ contract Crowdfunding is ReentrancyGuard, Ownable {
     uint256 public platformFeeRate = 250; // 2.5%
     address payable public platformWallet;
 
-    // 最小众筹目标和最小投资金额
-    uint256 public constant MIN_GOAL_AMOUNT = 0.1 ether;
-    uint256 public constant MIN_CONTRIBUTION = 0.01 ether;
-    uint256 public constant MIN_DURATION = 1 days;
-    uint256 public constant MAX_DURATION = 90 days;
+    // 最小众筹目标和最小投资金额（支持小数，精度更高）
+    uint256 public constant MIN_GOAL_AMOUNT = 0.001 ether;  // 0.001 ETH = 1000000000000000 wei
+    uint256 public constant MIN_CONTRIBUTION = 0.0001 ether; // 0.0001 ETH = 100000000000000 wei
+    uint256 public constant MIN_DURATION = 3600; // 1小时 = 3600秒
+    uint256 public constant MAX_DURATION = 7776000; // 90天 = 90 * 24 * 3600 = 7776000秒
 
     // 事件定义
     event ProjectCreated(
@@ -128,23 +128,23 @@ contract Crowdfunding is ReentrancyGuard, Ownable {
      * @param _title 项目标题
      * @param _description 项目描述
      * @param _goalAmount 目标金额（wei）
-     * @param _durationInDays 众筹天数
+     * @param _durationInSeconds 众筹持续时间（秒）
      */
     function createProject(
         string memory _title,
         string memory _description,
         uint256 _goalAmount,
-        uint256 _durationInDays
+        uint256 _durationInSeconds
     ) external returns (uint256) {
         require(bytes(_title).length > 0, "Title cannot be empty");
         require(bytes(_description).length > 0, "Description cannot be empty");
         require(_goalAmount >= MIN_GOAL_AMOUNT, "Goal amount too low");
-        require(_durationInDays >= MIN_DURATION / 1 days, "Duration too short");
-        require(_durationInDays <= MAX_DURATION / 1 days, "Duration too long");
+        require(_durationInSeconds >= MIN_DURATION, "Duration too short");
+        require(_durationInSeconds <= MAX_DURATION, "Duration too long");
 
         projectCounter++;
         uint256 projectId = projectCounter;
-        
+
         Project storage newProject = projects[projectId];
         newProject.id = projectId;
         newProject.title = _title;
@@ -152,7 +152,7 @@ contract Crowdfunding is ReentrancyGuard, Ownable {
         newProject.creator = payable(msg.sender);
         newProject.goalAmount = _goalAmount;
         newProject.currentAmount = 0;
-        newProject.deadline = block.timestamp + (_durationInDays * 1 days);
+        newProject.deadline = block.timestamp + _durationInSeconds;
         newProject.createdAt = block.timestamp;
         newProject.status = ProjectStatus.Active;
         newProject.withdrawn = false;
