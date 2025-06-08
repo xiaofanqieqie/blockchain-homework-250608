@@ -7,6 +7,9 @@ services:
     command: ["/workspace/dapp/init.sh /workspace/dapp/mine.sh"]
     stdin_open: true
     tty: true
+    ports:
+      - "8545:8545"  # RPC 端口
+      - "30303:30303"  # P2P 端口
     volumes:
       - ./opt/docker-project/eth/workspace:/workspace
     networks:

@@ -52,6 +52,10 @@ chmod +x ./opt/docker-project/eth/workspace/dapp/mine.sh
 docker compose -f master-miner-docker-compose.yml up -d --build
 
 
+### 开始挖矿
+miner.start(1)
+
+
 ### 创建从矿工节点:
 vi ./opt/docker-project/eth/workspace/dapp/node.sh
 ```
@@ -67,6 +71,14 @@ docker compose -f worker-node-docker-compose.yml up -d --build
 ```
 docker exec -it miner geth attach ~/data/geth.ipc
 ```
+或者
+```
+geth attach ~/data/geth.ipc
+```
+
+
+
+
 
 ### 查看节点信息:
 ```

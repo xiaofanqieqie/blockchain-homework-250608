@@ -1,0 +1,16 @@
+{
+  "name": "blockchain-connection-test",
+  "version": "1.0.0",
+  "description": "测试外部连接到私有以太坊网络",
+  "main": "test-connect.js",
+  "scripts": {
+    "test": "node test-connect.js",
+    "start": "node test-connect.js"
+  },
+  "dependencies": {
+    "web3": "^4.0.0"
+  },
+  "keywords": ["ethereum", "blockchain", "web3", "connection-test"],
+  "author": "",
+  "license": "MIT"
+} 
