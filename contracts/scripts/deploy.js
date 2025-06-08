@@ -8,8 +8,8 @@ async function main() {
   console.log("📝 部署账户:", deployer.address);
   
   // 检查账户余额
-  const balance = await deployer.getBalance();
-  console.log("💰 账户余额:", ethers.utils.formatEther(balance), "ETH\n");
+  const balance = await ethers.provider.getBalance(deployer.address);
+  console.log("💰 账户余额:", ethers.formatEther(balance), "ETH\n");
 
   // 设置平台钱包地址（可以设置为部署者地址或指定地址）
   const platformWallet = deployer.address; // 或者使用其他地址
@@ -24,12 +24,12 @@ async function main() {
   const crowdfunding = await Crowdfunding.deploy(platformWallet);
   
   // 等待部署完成
-  await crowdfunding.deployed();
+  await crowdfunding.waitForDeployment();
   
   console.log("✅ 众筹合约部署成功!");
-  console.log("📍 合约地址:", crowdfunding.address);
-  console.log("🔗 交易哈希:", crowdfunding.deployTransaction.hash);
-  console.log("⛽ Gas 使用量:", crowdfunding.deployTransaction.gasLimit.toString());
+  console.log("📍 合约地址:", await crowdfunding.getAddress());
+  console.log("🔗 交易哈希:", crowdfunding.deploymentTransaction().hash);
+  console.log("⛽ Gas 使用量:", crowdfunding.deploymentTransaction().gasLimit.toString());
 
   // 验证部署
   console.log("\n🔍 验证部署...");
@@ -43,7 +43,7 @@ async function main() {
   console.log("\n📋 合约信息汇总:");
   console.log("==========================================");
   console.log("合约名称: Crowdfunding");
-  console.log("合约地址:", crowdfunding.address);
+  console.log("合约地址:", await crowdfunding.getAddress());
   console.log("网络:", (await deployer.provider.getNetwork()).name);
   console.log("部署者:", deployer.address);
   console.log("平台钱包:", platformWallet);
@@ -53,12 +53,12 @@ async function main() {
   const fs = require('fs');
   const deploymentInfo = {
     contractName: "Crowdfunding",
-    contractAddress: crowdfunding.address,
+    contractAddress: await crowdfunding.getAddress(),
     deployer: deployer.address,
     platformWallet: platformWallet,
-    transactionHash: crowdfunding.deployTransaction.hash,
-    blockNumber: crowdfunding.deployTransaction.blockNumber,
-    gasUsed: crowdfunding.deployTransaction.gasLimit.toString(),
+    transactionHash: crowdfunding.deploymentTransaction().hash,
+    blockNumber: crowdfunding.deploymentTransaction().blockNumber,
+    gasUsed: crowdfunding.deploymentTransaction().gasLimit.toString(),
     timestamp: new Date().toISOString(),
     network: (await deployer.provider.getNetwork()).name
   };
@@ -69,7 +69,7 @@ async function main() {
   );
   console.log("💾 部署信息已保存到 deployment-info.json");
 
-  return crowdfunding.address;
+  return await crowdfunding.getAddress();
 }
 
 // 处理错误

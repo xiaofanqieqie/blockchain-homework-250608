@@ -14,9 +14,9 @@ module.exports = {
   networks: {
     // 本地开发网络
     localhost: {
-      url: "http://127.0.0.1:8545",
-      chainId: 31337,
-      accounts: "remote" // 使用Hardhat本地节点账户
+      url: "http://152.53.165.85:8545",
+      chainId: 88,
+      accounts: "remote" // 使用私有网络账户
     },
     // 你的私有网络
     private: {
