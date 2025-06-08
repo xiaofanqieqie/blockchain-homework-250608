@@ -182,7 +182,7 @@ contract Crowdfunding is ReentrancyGuard, Ownable {
         nonReentrant
     {
         require(msg.value >= MIN_CONTRIBUTION, "Contribution amount too low");
-        require(msg.sender != projects[_projectId].creator, "Creator cannot contribute to own project");
+        // require(msg.sender != projects[_projectId].creator, "Creator cannot contribute to own project"); // 允许创建者投资自己的项目
 
         Project storage project = projects[_projectId];
         

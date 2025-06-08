@@ -328,11 +328,34 @@ async function contributeToProject() {
     console.log("标题:", project.title);
     console.log("目标金额:", formatEther(project.goalAmount), "ETH");
     console.log("当前金额:", formatEther(project.currentAmount), "ETH");
-    console.log("状态:", ProjectStatus[project.status]);
+    console.log("状态:", ProjectStatus[Number(project.status)]);
+    console.log("截止时间:", formatTimestamp(project.deadline));
+    
+    // 检查当前时间和截止时间
+    const now = Math.floor(Date.now() / 1000);
+    const deadline = Number(project.deadline);
+    const isExpired = now >= deadline;
+    
+    console.log("当前时间:", new Date().toLocaleString('zh-CN'));
+    console.log("项目", isExpired ? "已截止" : "未截止");
+    
+    if (isExpired) {
+      const expiredHours = Math.floor((now - deadline) / 3600);
+      console.log(`已超期 ${expiredHours} 小时`);
+    } else {
+      const remainingHours = Math.floor((deadline - now) / 3600);
+      console.log(`剩余 ${remainingHours} 小时`);
+    }
 
-    // 检查项目状态
-    if (project.status !== 0) {
+    // 检查项目状态和时间
+    if (Number(project.status) !== 0) {
       console.log("❌ 该项目不是活跃状态，无法投资");
+      console.log("项目状态码:", project.status);
+      return;
+    }
+    
+    if (isExpired) {
+      console.log("❌ 项目已超过截止时间，无法投资");
       return;
     }
 
@@ -358,7 +381,7 @@ async function contributeToProject() {
     console.log("💰 项目当前总额:", formatEther(updatedProject.currentAmount), "ETH");
     console.log("📊 完成度:", (Number(updatedProject.currentAmount) * 100 / Number(updatedProject.goalAmount)).toFixed(2), "%");
     
-    if (updatedProject.status === 1) {
+    if (Number(updatedProject.status) === 1) {
       console.log("🎉 恭喜！项目已达到目标金额！");
     }
     
@@ -381,7 +404,7 @@ async function withdrawFunds() {
     console.log("标题:", project.title);
     console.log("创建者:", project.creator);
     console.log("当前金额:", formatEther(project.currentAmount), "ETH");
-    console.log("状态:", ProjectStatus[project.status]);
+    console.log("状态:", ProjectStatus[Number(project.status)]);
     console.log("是否已提取:", project.withdrawn ? "是" : "否");
 
     if (project.creator.toLowerCase() !== deployer.address.toLowerCase()) {
@@ -389,7 +412,7 @@ async function withdrawFunds() {
       return;
     }
 
-    if (project.status !== 1) { // 1 = Successful
+    if (Number(project.status) !== 1) { // 1 = Successful
       console.log("❌ 项目必须成功才能提取资金");
       return;
     }
@@ -434,7 +457,7 @@ async function requestRefund() {
     
     console.log("\n项目信息:");
     console.log("标题:", project.title);
-    console.log("状态:", ProjectStatus[project.status]);
+    console.log("状态:", ProjectStatus[Number(project.status)]);
     console.log("截止时间:", formatTimestamp(project.deadline));
     console.log("您的投资:", formatEther(userContribution), "ETH");
 
@@ -444,7 +467,7 @@ async function requestRefund() {
     }
 
     const now = Math.floor(Date.now() / 1000);
-    const canRefund = project.status === 2 || // Failed
+    const canRefund = Number(project.status) === 2 || // Failed
                      (now >= project.deadline && project.currentAmount < project.goalAmount);
     
     if (!canRefund) {
@@ -494,7 +517,7 @@ async function cancelProject() {
       return;
     }
 
-    if (project.status !== 0) { // 0 = Active
+    if (Number(project.status) !== 0) { // 0 = Active
       console.log("❌ 只能取消活跃状态的项目");
       return;
     }
@@ -544,7 +567,7 @@ async function viewProjectDetails() {
             (Number(project.currentAmount) * 100 / Number(project.goalAmount)) : 0;
           
           console.log(`\n[${i}] ${project.title}`);
-          console.log(`    状态: ${ProjectStatus[project.status]}`);
+          console.log(`    状态: ${ProjectStatus[Number(project.status)]}`);
           console.log(`    进度: ${formatEther(project.currentAmount)}/${formatEther(project.goalAmount)} ETH (${progress.toFixed(1)}%)`);
           console.log(`    截止: ${formatTimestamp(project.deadline)}`);
         } catch (e) {
@@ -566,7 +589,7 @@ async function viewProjectDetails() {
       console.log("📊 完成度:", (Number(project.currentAmount) * 100 / Number(project.goalAmount)).toFixed(2), "%");
       console.log("📅 创建时间:", formatTimestamp(project.createdAt));
       console.log("⏰ 截止时间:", formatTimestamp(project.deadline));
-      console.log("📈 状态:", ProjectStatus[project.status]);
+      console.log("📈 状态:", ProjectStatus[Number(project.status)]);
       console.log("💸 已提取:", project.withdrawn ? "是" : "否");
       console.log("👥 投资者数量:", project.contributorsCount.toString());
       
@@ -644,7 +667,7 @@ async function viewUserContributions() {
       
       console.log(`\n[${projectId}] ${project.title}`);
       console.log(`    投资金额: ${formatEther(contribution)} ETH`);
-      console.log(`    项目状态: ${ProjectStatus[project.status]}`);
+      console.log(`    项目状态: ${ProjectStatus[Number(project.status)]}`);
     }
     
     console.log("\n💰 总投资金额:", formatEther(totalInvested), "ETH");
@@ -681,7 +704,7 @@ async function viewUserCreatedProjects() {
       const project = await crowdfunding.getProject(Number(projectId));
       
       totalRaised += project.currentAmount;
-      if (project.status === 1 || project.status === 3) { // Successful or Withdrawn
+      if (Number(project.status) === 1 || Number(project.status) === 3) { // Successful or Withdrawn
         successfulCount++;
       }
       
@@ -690,7 +713,7 @@ async function viewUserCreatedProjects() {
       console.log(`\n[${projectId}] ${project.title}`);
       console.log(`    目标: ${formatEther(project.goalAmount)} ETH`);
       console.log(`    筹集: ${formatEther(project.currentAmount)} ETH (${progress.toFixed(1)}%)`);
-      console.log(`    状态: ${ProjectStatus[project.status]}`);
+      console.log(`    状态: ${ProjectStatus[Number(project.status)]}`);
       console.log(`    投资者: ${project.contributorsCount} 人`);
     }
     
@@ -891,10 +914,10 @@ async function emergencyFailProject() {
     const project = await crowdfunding.getProject(parseInt(projectId));
     console.log("\n项目信息:");
     console.log("标题:", project.title);
-    console.log("状态:", ProjectStatus[project.status]);
+    console.log("状态:", ProjectStatus[Number(project.status)]);
     console.log("当前金额:", formatEther(project.currentAmount), "ETH");
     
-    if (project.status !== 0) {
+    if (Number(project.status) !== 0) {
       console.log("❌ 只能标记活跃状态的项目为失败");
       return;
     }
