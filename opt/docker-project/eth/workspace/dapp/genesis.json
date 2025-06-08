@@ -2,8 +2,13 @@
     "config": {
       "chainId": 88,
       "homesteadBlock": 0,
+      "eip150Block": 0,
       "eip155Block": 0,
-      "eip158Block": 0
+      "eip158Block": 0,
+      "byzantiumBlock": 0,
+      "constantinopleBlock": 0,
+      "petersburgBlock": 0,
+      "istanbulBlock": 0
     },
     "alloc"      : {
       "b126d89780d2221ceffe5c94efd9ca6a005a9f0c": {"balance": "100000000000000000000"},

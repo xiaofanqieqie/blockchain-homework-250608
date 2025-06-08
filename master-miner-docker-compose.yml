@@ -1,6 +1,6 @@
 services:
   miner:
-    image: ethereum/client-go:v1.8.12
+    image: ethereum/client-go:v1.10.26
     container_name: miner
     hostname: node
     entrypoint: ["/bin/sh", "-c"]
